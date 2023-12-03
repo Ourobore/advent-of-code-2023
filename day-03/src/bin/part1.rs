@@ -58,10 +58,15 @@ impl Schematic {
                 } else {
                     if current_number.len() > 0 {
                         numbers.push((current_number.clone(), current_number_coordinates.to_vec()));
+                        current_number.clear();
+                        current_number_coordinates.clear();
                     }
-                    current_number.clear();
-                    current_number_coordinates.clear();
                 }
+            }
+            if current_number.len() > 0 {
+                numbers.push((current_number.clone(), current_number_coordinates.to_vec()));
+                current_number.clear();
+                current_number_coordinates.clear();
             }
         }
         numbers
@@ -74,16 +79,21 @@ impl Schematic {
             let mut current_symbol: String = String::new();
             let mut current_symbol_coordinates: Vec<Coordinates> = Vec::new();
             for (char_number, c) in row.iter().enumerate() {
-                if c.is_ascii_punctuation() && *c != '.' {
+                if c.is_ascii_punctuation() && *c != '.' && current_symbol.len() == 0 {
                     current_symbol.push(c.to_owned());
                     current_symbol_coordinates.push(Coordinates(row_number, char_number));
                 } else {
                     if current_symbol.len() > 0 {
                         symbols.push((current_symbol.clone(), current_symbol_coordinates.to_vec()));
+                        current_symbol.clear();
+                        current_symbol_coordinates.clear();
                     }
-                    current_symbol.clear();
-                    current_symbol_coordinates.clear();
                 }
+            }
+            if current_symbol.len() > 0 {
+                symbols.push((current_symbol.clone(), current_symbol_coordinates.to_vec()));
+                current_symbol.clear();
+                current_symbol_coordinates.clear();
             }
         }
         symbols
@@ -91,7 +101,9 @@ impl Schematic {
 
     fn find_part_numbers(&self) -> Vec<u32> {
         let numbers = self.find_numbers();
+        println!("{:?}", numbers.len());
         let symbols = self.find_symbols();
+        println!("{:?}", symbols.len());
         let symbols_coordinates = symbols
             .iter()
             .flat_map(|s| s.1.to_vec())
@@ -167,6 +179,18 @@ mod tests {
                 vec!['*', '2', '9', '4', '.'],
             ])
         )
+    }
+
+    #[test]
+    fn test_big_from_strings() {
+        let inputs = parse_input("input1.txt");
+        let schematic = Schematic::from_strings(inputs.to_vec());
+        let mut string_vec: Vec<String> = Vec::new();
+        for row in schematic.0 {
+            string_vec.push(row.iter().collect());
+        }
+
+        assert_eq!(string_vec, inputs);
     }
 
     #[test]
